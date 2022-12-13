@@ -1,0 +1,201 @@
+<script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+<script src="https//cdn.jsdelivr.net/gh/n5ro/aframe-physics-system@v4.0.1/dist/aframe-physics-system.min.js"></script>
+<script src="https://unpkg.com/aframe-physics-system@1.4.0/dist/aframe-physics-system.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/mrdoob/three.js@r134/examples/js/deprecated/Geometry.js"></script>
+
+<a-scene>
+    <a-assets>
+        <img id="groundTexture" src="./groundTexture.jpeg" />
+        <a-asset-item id="gunModel" src="./gun/scene.gltf"></a-asset-item>
+        <a-asset-item id="enemyModel" src="./enemy/scene.gltf"></a-asset-item>
+    </a-assets>
+
+    <!-- <a-sphere
+        id="enemy"
+        radius="1"
+        position="0 1 -10"
+        color="yellow"
+    ></a-sphere> -->
+    <a-entity
+        gltf-model="#enemyModel"
+        position="0 0 -10"
+        scale="0.5 0.5 0.5"
+        id="enemy"
+    ></a-entity>
+    <a-entity
+        gltf-model="#enemyModel"
+        position="0 0 -10"
+        scale="0.5 0.5 0.5"
+        id="enemy2"
+    ></a-entity>
+
+    <a-sphere
+        id="bullet"
+        radius="0.05"
+        position="1 1 -1"
+        color="black"
+        visible="false"
+    ></a-sphere>
+
+    <a-plane
+        id="ground"
+        src="#groundTexture"
+        position="0 0 -4"
+        rotation="-90 45 45"
+        width="200"
+        height="200"
+        color="#7BC8A4"
+    ></a-plane>
+
+    <a-sky color="#333"></a-sky>
+
+    <a-camera id="camera" wasd-controls="acceleration: 120">
+        <a-cursor></a-cursor>
+        <a-entity
+            gltf-model="#gunModel"
+            scale="0.5 0.5 0.5"
+            position="1 -1 -1"
+            rotation="25 95 0"
+            id="gun"
+        >
+        </a-entity>
+    </a-camera>
+</a-scene>
+
+<script>
+    var ground = document.querySelector("#ground");
+    var enemy = document.querySelector("#enemy");
+    var enemy2 = document.querySelector("#enemy2");
+    var bullet = document.querySelector("#bullet");
+    var camera = document.querySelector("#camera");
+    var gun = document.querySelector("#gun");
+
+    var allColors = [
+        // "yellow",
+        // "red",
+        // "blue",
+        // "green",
+        // "orange",
+        // "purple",
+        // "darkblue",
+        // "pink",
+        // "brown",
+        // "black",
+        // "white",
+        "#ffff00",
+        "#ff0000",
+        "#0000ff",
+        "#00ff00",
+        "#ffa500",
+        "#800080",
+        "#00008b",
+        "#ffc0cb",
+        "#a52a2a",
+        "#000000",
+        "#ffffff",
+    ];
+
+    enemy.addEventListener("click", shoot);
+    enemy2.addEventListener("click", shoot);
+
+    async function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    function resetPosition(element = enemy) {
+        // set random position and velocity
+        var randomX = Math.random() * 10 - 5;
+        var randomY = Math.random() * 10;
+        var randomZ = Math.random() * 10 - 4;
+        console.log({ x: randomX, y: randomY, z: randomZ });
+        element.setAttribute("position", {
+            x: randomX,
+            y: randomY,
+            z: randomZ,
+        });
+
+        var randomVX = Math.random() * 2;
+        var randomVY = Math.random() * 2;
+        var randomVZ = Math.random() * 2;
+        element.setAttribute("velocity", {
+            x: randomVX,
+            y: randomVY,
+            z: randomVZ,
+        });
+
+        // set random color
+        var randomColor =
+            allColors[Math.floor(Math.random() * allColors.length)];
+        element.setAttribute("color", randomColor);
+    }
+
+    async function sleep(ms = 10000) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function shoot(event) {
+        var element = event.target;
+        // create a bullet which moves towards enemy
+        var fromPosition = camera.getAttribute("position");
+        var toPosition = element.getAttribute("position");
+        fromPosition = {
+            x: fromPosition.x,
+            y: fromPosition.y,
+            z: fromPosition.z,
+        };
+        toPosition = {
+            x: toPosition.x,
+            y: toPosition.y,
+            z: toPosition.z,
+        };
+        bullet.setAttribute("position", fromPosition);
+        bullet.setAttribute("visible", true);
+        var duration = 200;
+        var animationProperties = {
+            property: "position",
+            from: fromPosition,
+            to: toPosition,
+            dur: duration,
+            easing: "linear",
+        };
+        bullet.setAttribute("animation", animationProperties);
+
+        await sleep(duration);
+        bullet.setAttribute("visible", "false");
+        bullet.removeAttribute("animation");
+        resetPosition(element);
+    }
+
+    // function onCollide(event) {
+    //     console.log("collide");
+    //     console.log(event);
+    //     // var enemy = event.detail.body.el;
+    //     // var bullet = event.detail.target.el;
+    //     // if (bullet.id == "bullet") {
+    //     //     resetPosition();
+    //     // }
+    // }
+    // enemy.addEventListener("collide", onCollide);
+    // enemy2.addEventListener("collide", onCollide);
+
+    document.addEventListener("keydown", function (evt) {
+        if (evt.keyCode == 81) {
+            var position = camera.getAttribute("position");
+            position.y += 0.25;
+            camera.setAttribute("position", position);
+        }
+        if (evt.keyCode == 90) {
+            var position = camera.getAttribute("position");
+            position.y -= 0.25;
+            camera.setAttribute("position", position);
+        }
+        if (evt.keyCode == 88) {
+            var position = camera.getAttribute("position");
+            position.y = 1.6;
+            camera.setAttribute("position", position);
+        }
+    });
+
+    resetPosition(enemy);
+    resetPosition(enemy2);
+</script>
